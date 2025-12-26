@@ -21,6 +21,7 @@ import wily.factoryapi.FactoryAPI;
 import wily.factoryapi.FactoryAPIClient;
 import wily.legacy.Legacy4J;
 import wily.legacy.client.screen.LegacyMenuAccess;
+import wily.legacy.core.logger.L4JLog;
 import wily.legacy.util.LegacyTipBuilder;
 
 import java.io.BufferedReader;
@@ -251,7 +252,7 @@ public class LegacyTipManager implements ResourceManagerReloadListener {
                 JsonObject obj = GsonHelper.parse(bufferedReader);
                 LegacyTipBuilder.LIST_CODEC.parse(JsonOps.INSTANCE, obj.get("loadingTips")).result().ifPresent(l -> l.forEach(b -> loadingTips.add(() -> getLoadingTipFromBuilder(b))));
             } catch (IOException var8) {
-                Legacy4J.LOGGER.warn(var8.getMessage());
+                L4JLog.LOGGER.warn(var8.getMessage());
             }
         }));
     }

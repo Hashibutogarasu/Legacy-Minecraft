@@ -20,6 +20,7 @@ import java.net.URI;
 
 import static wily.legacy.client.controller.ControllerManager.CONTROLLER_DETECTED;
 import static wily.legacy.client.controller.ControllerManager.CONTROLLER_DISCONNECTED;
+import static wily.legacy.core.logger.L4JLog.LOGGER;
 
 public interface Controller {
 
@@ -267,7 +268,7 @@ public interface Controller {
             try {
                 applyGamePadMappingsFromBuffer(new BufferedReader(new InputStreamReader(URI.create("https://raw.githubusercontent.com/mdqinc/SDL_GameControllerDB/master/gamecontrollerdb.txt").toURL().openStream())));
             } catch (IOException e) {
-                Legacy4J.LOGGER.warn(e.getMessage());
+                LOGGER.warn(e.getMessage());
             }
         }
     }

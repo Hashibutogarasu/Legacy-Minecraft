@@ -22,7 +22,6 @@ import org.jetbrains.annotations.Nullable;
 import wily.factoryapi.FactoryAPIPlatform;
 import wily.factoryapi.base.client.FactoryGuiGraphics;
 import wily.factoryapi.base.client.UIAccessor;
-import wily.legacy.Legacy4J;
 import wily.legacy.Legacy4JClient;
 import wily.legacy.client.*;
 import wily.legacy.util.LegacyComponents;
@@ -40,6 +39,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 
 import static wily.legacy.client.screen.ControlTooltip.*;
+import static wily.legacy.core.logger.L4JLog.LOGGER;
 
 public class LoadSaveScreen extends PanelBackgroundScreen {
     public static final Component GAME_MODEL_LABEL = Component.translatable("selectWorld.gameMode");
@@ -96,15 +96,15 @@ public class LoadSaveScreen extends PanelBackgroundScreen {
 
     public static void deleteLevelDimension(LevelStorageSource.LevelStorageAccess access, ResourceKey<Level> dimension) throws IOException {
         Path path = access.getDimensionPath(dimension);
-        Legacy4J.LOGGER.info("Deleting dimension {}", dimension);
+        LOGGER.info("Deleting dimension {}", dimension);
         int i = 1;
 
         while (i <= 5) {
-            Legacy4J.LOGGER.info("Attempt {}...", i);
+            LOGGER.info("Attempt {}...", i);
             try {
                 Files.walkFileTree(path, new SimpleFileVisitor<>() {
                     public FileVisitResult visitFile(Path pathx, BasicFileAttributes basicFileAttributes) throws IOException {
-                        Legacy4J.LOGGER.debug("Deleting {}", pathx);
+                        LOGGER.debug("Deleting {}", pathx);
                         Files.delete(pathx);
                         return FileVisitResult.CONTINUE;
                     }
@@ -123,7 +123,7 @@ public class LoadSaveScreen extends PanelBackgroundScreen {
                 if (i >= 5) {
                     throw var6;
                 }
-                Legacy4J.LOGGER.warn("Failed to delete {}", path, var6);
+                LOGGER.warn("Failed to delete {}", path, var6);
                 try {
                     Thread.sleep(500L);
                 } catch (InterruptedException var5) {

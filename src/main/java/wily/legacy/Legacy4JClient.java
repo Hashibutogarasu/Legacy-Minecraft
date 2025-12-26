@@ -105,7 +105,7 @@ import wily.legacy.network.ServerOpenClientMenuPayload;
 import wily.legacy.entity.LegacyPlayerInfo;
 import wily.legacy.network.TopMessage;
 import wily.legacy.util.client.LegacyGuiElements;
-import wily.legacy.util.client.MCAccount;
+import wily.legacy.util.client.LegacyAuthService;
 
 
 import java.io.File;
@@ -113,7 +113,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import static wily.legacy.Legacy4J.MOD_ID;
+import static wily.legacy.core.ModConstants.MOD_ID;
 import static wily.legacy.init.LegacyRegistries.SHRUB;
 
 
@@ -403,7 +403,7 @@ public class Legacy4JClient {
         FactoryOptions.NEAREST_MIPMAP_SCALING.setDefault(true);
         FactoryOptions.RANDOM_BLOCK_ROTATIONS.setDefault(false);
         FactoryAPIClient.setup(m -> {
-            MCAccount.loadAll();
+            LegacyAuthService.getInstance().initialize();
             controllerManager.setup(m);
             knownBlocks = new KnownListing<>(BuiltInRegistries.BLOCK, m.gameDirectory.toPath());
             knownEntities = new KnownListing<>(BuiltInRegistries.ENTITY_TYPE, m.gameDirectory.toPath());

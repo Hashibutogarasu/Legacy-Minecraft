@@ -56,6 +56,7 @@ import java.util.Locale;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import static wily.legacy.core.logger.L4JLog.LOGGER;
 
 public class SaveRenderableList extends RenderableVList {
     static final ResourceLocation ERROR_HIGHLIGHTED = FactoryAPI.createVanillaLocation("world_list/error_highlighted");
@@ -92,7 +93,7 @@ public class SaveRenderableList extends RenderableVList {
                     //? if <=1.20.2
                     /*Minecraft.getInstance().getLevelSource().getWorldDirValidator().validateSymlink(iconFile,list);*/
                     if (!list.isEmpty()) {
-                        Legacy4J.LOGGER.warn("{}", ContentValidationException.getMessage(iconFile, list));
+                        LOGGER.warn("{}", ContentValidationException.getMessage(iconFile, list));
                         iconFile = null;
                     } else {
                         basicFileAttributes = Files.readAttributes(iconFile, BasicFileAttributes.class);
@@ -104,7 +105,7 @@ public class SaveRenderableList extends RenderableVList {
             } catch (NoSuchFileException noSuchFileException) {
                 iconFile = null;
             } catch (IOException iOException) {
-                Legacy4J.LOGGER.error("could not validate symlink", iOException);
+                LOGGER.error("could not validate symlink", iOException);
                 iconFile = null;
             }
             FaviconTexture icon = FaviconTexture.forWorld(Minecraft.getInstance().getTextureManager(), key.getLevelId());
@@ -113,7 +114,7 @@ public class SaveRenderableList extends RenderableVList {
                 try (InputStream inputStream = Files.newInputStream(iconFile)) {
                     icon.upload(NativeImage.read(inputStream));
                 } catch (Throwable throwable) {
-                    Legacy4J.LOGGER.error("Invalid icon for world {}", key.getLevelId(), throwable);
+                    LOGGER.error("Invalid icon for world {}", key.getLevelId(), throwable);
                 }
             } else {
                 icon.clear();
@@ -175,7 +176,7 @@ public class SaveRenderableList extends RenderableVList {
         try {
             levelCandidates = this.minecraft.getLevelSource().findLevelCandidates();
         } catch (LevelStorageException levelStorageException) {
-            Legacy4J.LOGGER.error("Couldn't load level list", levelStorageException);
+            LOGGER.error("Couldn't load level list", levelStorageException);
             handleLevelLoadFailure(minecraft, levelStorageException.getMessageComponent());
             return CompletableFuture.completedFuture(List.of());
         }

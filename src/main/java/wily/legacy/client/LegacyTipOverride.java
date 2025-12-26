@@ -28,6 +28,7 @@ import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import static wily.legacy.core.logger.L4JLog.LOGGER;
 
 public record LegacyTipOverride(
         BiPredicate<Item, /*? if <1.20.5 {*//*CompoundTag*//*?} else {*/DataComponentPatch/*?}*/> matchItemOverride,
@@ -79,7 +80,7 @@ public record LegacyTipOverride(
                     else if (ioElement instanceof JsonObject o) list.add(overrideFromJson(o));
                     bufferedReader.close();
                 } catch (IOException exception) {
-                    Legacy4J.LOGGER.warn(exception.getMessage());
+                    LOGGER.warn(exception.getMessage());
                 }
             }));
         }

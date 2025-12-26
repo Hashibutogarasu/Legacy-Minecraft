@@ -3,6 +3,7 @@ package wily.legacy.network;
 import net.minecraft.network.chat.Component;
 import wily.factoryapi.base.network.CommonNetwork;
 import wily.legacy.Legacy4J;
+import wily.legacy.core.network.types.SendType;
 
 public record TopMessage(Component message, int baseColor, int ticksOnScreen, boolean shadow, boolean fade,
                          boolean pulse) {
@@ -53,22 +54,6 @@ public record TopMessage(Component message, int baseColor, int ticksOnScreen, bo
     public static void setSmall(TopMessage topMessage) {
         small = topMessage;
         smallTicks = 0;
-    }
-
-    public enum SendType {
-        SMALL, MEDIUM, CLEAR_SMALL, CLEAR_MEDIUM, CLEAR_ALL;
-
-        public boolean isSmall() {
-            return this == SMALL || this == CLEAR_SMALL || this == CLEAR_ALL;
-        }
-
-        public boolean isMedium() {
-            return this == MEDIUM || this == CLEAR_MEDIUM || this == CLEAR_ALL;
-        }
-
-        public boolean clear() {
-            return this.ordinal() > 1;
-        }
     }
 
     public record Payload(SendType sendType, TopMessage topMessage) implements CommonNetwork.Payload {

@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import static wily.legacy.core.logger.L4JLog.LOGGER;
 
 public record LegacyWorldTemplate(Component buttonMessage, ResourceLocation icon, String worldTemplate,
                                   String folderName, boolean directJoin, boolean isLocked, boolean isGamePath, boolean preDownload,
@@ -68,7 +69,7 @@ public record LegacyWorldTemplate(Component buttonMessage, ResourceLocation icon
             Files.createDirectories(path.getParent());
             Files.copy(stream, path);
         } catch (IOException e) {
-            Legacy4J.LOGGER.warn("Error when downloading world template to path {}: {}", path, e.getMessage());
+            LOGGER.warn("Error when downloading world template to path {}: {}", path, e.getMessage());
         }
     }
 
@@ -76,7 +77,7 @@ public record LegacyWorldTemplate(Component buttonMessage, ResourceLocation icon
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(URI.create(downloadURI.get() + ".md5").toURL().openStream()))) {
             return reader.readLine().trim();
         } catch (IOException e) {
-            Legacy4J.LOGGER.warn("Error when reading checksum from world template {}: {}", path, e.getMessage());
+            LOGGER.warn("Error when reading checksum from world template {}: {}", path, e.getMessage());
             return null;
         }
     }
@@ -86,7 +87,7 @@ public record LegacyWorldTemplate(Component buttonMessage, ResourceLocation icon
         try {
             return byteSource.hash(Hashing.md5()).toString();
         } catch (IOException e) {
-            Legacy4J.LOGGER.warn("Error when reading existing checksum from world template {}: {}", path, e.getMessage());
+            LOGGER.warn("Error when reading existing checksum from world template {}: {}", path, e.getMessage());
             return null;
         }
     }
@@ -97,14 +98,14 @@ public record LegacyWorldTemplate(Component buttonMessage, ResourceLocation icon
             list.clear();
             IOUtil.getOrderedNamespaces(resourceManager).forEach(name -> resourceManager.getResource(FactoryAPI.createLocation(name, TEMPLATES)).ifPresent(r -> {
                 try (BufferedReader bufferedReader = r.openAsReader()) {
-                    LIST_CODEC.parse(JsonOps.INSTANCE, JsonParser.parseReader(bufferedReader)).resultOrPartial(Legacy4J.LOGGER::warn).ifPresent(templates -> templates.forEach(template -> {
+                    LIST_CODEC.parse(JsonOps.INSTANCE, JsonParser.parseReader(bufferedReader)).resultOrPartial(LOGGER::warn).ifPresent(templates -> templates.forEach(template -> {
                         list.add(template);
                         if (template.preDownload())
                             template.downloadToPathIfPossible();
                     }));
 
                 } catch (IOException var8) {
-                    Legacy4J.LOGGER.warn(var8.getMessage());
+                    LOGGER.warn(var8.getMessage());
                 }
             }));
         }

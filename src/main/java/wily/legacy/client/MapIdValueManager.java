@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import static wily.legacy.core.logger.L4JLog.LOGGER;
 
 public record MapIdValueManager<T extends IdValueInfo<T>, M extends Map<ResourceLocation, T>>(ResourceLocation name,
                                                                                               Codec<List<T>> codec,
@@ -51,13 +52,13 @@ public record MapIdValueManager<T extends IdValueInfo<T>, M extends Map<Resource
         map.clear();
         IOUtil.getOrderedNamespaces(manager).forEach(name -> manager.getResource(FactoryAPI.createLocation(name, name().getPath() + ".json")).ifPresent(r -> {
             try (BufferedReader bufferedReader = r.openAsReader()) {
-                codec.parse(JsonOps.INSTANCE, JsonParser.parseReader(bufferedReader)).resultOrPartial(error -> Legacy4J.LOGGER.warn("Failed to parse {}: {}", getName(), error)).ifPresent(listings -> {
+                codec.parse(JsonOps.INSTANCE, JsonParser.parseReader(bufferedReader)).resultOrPartial(error -> LOGGER.warn("Failed to parse {}: {}", getName(), error)).ifPresent(listings -> {
                     for (T listing : listings) {
                         map.put(listing.id(), map.containsKey(listing.id()) ? map.get(listing.id()).copyFrom(listing) : listing);
                     }
                 });
             } catch (IOException exception) {
-                Legacy4J.LOGGER.warn(exception.getMessage());
+                LOGGER.warn(exception.getMessage());
             }
 
             if (DEBUG) {
@@ -65,9 +66,9 @@ public record MapIdValueManager<T extends IdValueInfo<T>, M extends Map<Resource
                 try (JsonWriter w = new JsonWriter(Files.newBufferedWriter(Minecraft.getInstance().gameDirectory.toPath().resolve("debug_map_id_values/" + name().getPath() + ".json"), Charsets.UTF_8))) {
                     w.setSerializeNulls(false);
                     w.setIndent("  ");
-                    GsonHelper.writeValue(w, codec.encodeStart(JsonOps.INSTANCE, List.copyOf(map.values())).resultOrPartial(error -> Legacy4J.LOGGER.warn("Failed to write {}: {}", getName(), error)).orElseThrow(), null);
+                    GsonHelper.writeValue(w, codec.encodeStart(JsonOps.INSTANCE, List.copyOf(map.values())).resultOrPartial(error -> LOGGER.warn("Failed to write {}: {}", getName(), error)).orElseThrow(), null);
                 } catch (IOException exception) {
-                    Legacy4J.LOGGER.warn(exception.getMessage());
+                    LOGGER.warn(exception.getMessage());
                 }
             }
         }));

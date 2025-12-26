@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
+import static wily.legacy.core.logger.L4JLog.LOGGER;
 
 public class HowToPlayScreen extends LegacyScreen {
 
@@ -100,7 +101,7 @@ public class HowToPlayScreen extends LegacyScreen {
                 try (BufferedReader bufferedReader = r.openAsReader()) {
                     Section.LIST_CODEC.parse(JsonOps.INSTANCE, JsonParser.parseReader(bufferedReader)).result().ifPresent(l -> l.forEach(s -> Section.list.add(s.index < 0 ? Section.list.size() : Math.min(s.index, Section.list.size()), s)));
                 } catch (IOException exception) {
-                    Legacy4J.LOGGER.warn(exception.getMessage());
+                    LOGGER.warn(exception.getMessage());
                 }
             })));
         }

@@ -4,7 +4,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import org.apache.commons.io.FileUtils;
-import wily.legacy.Legacy4J;
 import wily.legacy.Legacy4JClient;
 
 import java.io.File;
@@ -42,7 +41,7 @@ public class LegacySaveCache {
     }
 
     public static String importSaveFile(InputStream saveInputStream, Predicate<String> exists, LevelStorageSource source, String saveDirName) {
-        return Legacy4JClient.manageAvailableSaveDirName(f -> Legacy4J.copySaveToDirectory(saveInputStream, f), exists, source, saveDirName);
+        return Legacy4JClient.manageAvailableSaveDirName(f -> wily.legacy.core.utils.FileUtils.copySaveToDirectory(saveInputStream, f), exists, source, saveDirName);
     }
 
     public static String importSaveFile(InputStream saveInputStream, LevelStorageSource source, String saveDirName) {

@@ -21,17 +21,18 @@ import wily.legacy.Legacy4J;
 import wily.legacy.block.ColoredWaterCauldronBlock;
 import wily.legacy.block.entity.WaterCauldronBlockEntity;
 import wily.legacy.config.LegacyMixinToggles;
+import wily.legacy.core.ModConstants;
 import wily.legacy.inventory.LegacyCraftingMenu;
 import wily.legacy.inventory.LegacyMerchantMenu;
 import wily.legacy.util.LegacyTags;
 
 public class LegacyRegistries {
-    private static final RegisterListing<BlockEntityType<?>> BLOCK_ENTITIES_REGISTER = FactoryAPIPlatform.createRegister(Legacy4J.MOD_ID, BuiltInRegistries.BLOCK_ENTITY_TYPE);
-    private static final RegisterListing<Block> BLOCK_ITEMS_REGISTER = FactoryAPIPlatform.createRegister(Legacy4J.MOD_ID, BuiltInRegistries.BLOCK);
-    private static final RegisterListing<Block> BLOCK_REGISTER = FactoryAPIPlatform.createRegister(Legacy4J.MOD_ID, BuiltInRegistries.BLOCK);
-    private static final RegisterListing<Item> ITEM_REGISTER = FactoryAPIPlatform.createRegister(Legacy4J.MOD_ID, BuiltInRegistries.ITEM);
-    private static final RegisterListing<MenuType<?>> MENU_REGISTER = FactoryAPIPlatform.createRegister(Legacy4J.MOD_ID, BuiltInRegistries.MENU);
-    private static final RegisterListing<SoundEvent> SOUND_EVENT_REGISTER = FactoryAPIPlatform.createRegister(Legacy4J.MOD_ID, BuiltInRegistries.SOUND_EVENT);
+    private static final RegisterListing<BlockEntityType<?>> BLOCK_ENTITIES_REGISTER = FactoryAPIPlatform.createRegister(ModConstants.MOD_ID, BuiltInRegistries.BLOCK_ENTITY_TYPE);
+    private static final RegisterListing<Block> BLOCK_ITEMS_REGISTER = FactoryAPIPlatform.createRegister(ModConstants.MOD_ID, BuiltInRegistries.BLOCK);
+    private static final RegisterListing<Block> BLOCK_REGISTER = FactoryAPIPlatform.createRegister(ModConstants.MOD_ID, BuiltInRegistries.BLOCK);
+    private static final RegisterListing<Item> ITEM_REGISTER = FactoryAPIPlatform.createRegister(ModConstants.MOD_ID, BuiltInRegistries.ITEM);
+    private static final RegisterListing<MenuType<?>> MENU_REGISTER = FactoryAPIPlatform.createRegister(ModConstants.MOD_ID, BuiltInRegistries.MENU);
+    private static final RegisterListing<SoundEvent> SOUND_EVENT_REGISTER = FactoryAPIPlatform.createRegister(ModConstants.MOD_ID, BuiltInRegistries.SOUND_EVENT);
 
     public static final RegisterListing.Holder<MenuType<LegacyMerchantMenu>> MERCHANT_MENU = MENU_REGISTER.add("merchant_menu", ()->new MenuType<>(LegacyMerchantMenu::new, FeatureFlags.VANILLA_SET));
     public static final RegisterListing.Holder<MenuType<LegacyCraftingMenu>> STONECUTTER_PANEL_MENU = MENU_REGISTER.add("stonecutter_panel_menu", ()->new MenuType<>(LegacyCraftingMenu::stoneCutterMenu, FeatureFlags.VANILLA_SET));

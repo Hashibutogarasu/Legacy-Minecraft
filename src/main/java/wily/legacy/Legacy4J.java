@@ -1,24 +1,16 @@
 package wily.legacy;
 
-import net.minecraft.core.Holder;
 import net.minecraft.core.cauldron.CauldronInteraction;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.world.item.alchemy.PotionContents;
 import wily.factoryapi.base.network.CommonRecipeManager;
 import net.minecraft.world.item.*;
 import net.minecraft.world.phys.Vec3;
-import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import wily.factoryapi.FactoryAPI;
 import wily.factoryapi.FactoryAPIPlatform;
 import wily.factoryapi.FactoryEvent;
@@ -28,9 +20,11 @@ import wily.legacy.block.LegacyBlockBehaviors;
 import wily.legacy.config.LegacyCommonOptions;
 import wily.legacy.config.LegacyMixinToggles;
 import wily.legacy.config.LegacyWorldOptions;
+import wily.legacy.core.ModConstants;
 import wily.legacy.init.*;
 import wily.legacy.network.*;
 import wily.legacy.entity.LegacyPlayerInfo;
+import wily.legacy.network.TopMessage;
 import wily.legacy.util.ArmorStandPose;
 
 //? if fabric {
@@ -44,24 +38,15 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.api.distmarker.Dist;
 *///?}
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 import java.util.List;
 import java.util.function.*;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 //? if forge || neoforge
-/*@Mod(Legacy4J.MOD_ID)*/
+/*@Mod(ModConstants.MOD_ID)*/
 public class Legacy4J {
-
-    public static final String MOD_ID = "legacy";
-    public static final Supplier<String> VERSION = () -> FactoryAPIPlatform.getModInfo(MOD_ID).getVersion();
-    public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
+    public static final Supplier<String> VERSION = () -> FactoryAPIPlatform.getModInfo(ModConstants.MOD_ID).getVersion();
     public static final FactoryConfig.StorageHandler MIXIN_CONFIGS_STORAGE = FactoryConfig.StorageHandler.fromMixin(LegacyMixinToggles.COMMON_STORAGE, true);
 
     private static Collection<CommonNetwork.Payload> playerInitialPayloads = Collections.emptySet();
@@ -72,35 +57,6 @@ public class Legacy4J {
         /*if (FactoryAPI.isClient())
             Legacy4JClient.init();
         *///?}
-    }
-
-    public static List<Integer> getParsedVersion(String version) {
-        List<Integer> parsedVersion = new ArrayList<>();
-        String[] versions = version.split("[.\\-]");
-        for (String s : versions) {
-            int value;
-            try {
-                value = Integer.parseInt(s);
-            } catch (NumberFormatException e) {
-                value = 0;
-            }
-            parsedVersion.add(value);
-        }
-        return parsedVersion;
-    }
-
-    public static boolean isNewerVersion(String actualVersion, String previous) {
-        return isNewerVersion(actualVersion, previous, 2);
-    }
-
-    public static boolean isNewerVersion(String actualVersion, String previous, int limitCount) {
-        List<Integer> v = getParsedVersion(actualVersion);
-        List<Integer> v1 = getParsedVersion(previous);
-        int size = limitCount <= 0 ? v.size() : Math.min(limitCount, v.size());
-        for (int i = 0; i < size; i++) {
-            if (v.get(i) > (v1.size() <= i ? 0 : v1.get(i))) return true;
-        }
-        return false;
     }
 
     public static void init() {
@@ -135,7 +91,7 @@ public class Legacy4J {
     }
 
     public static ResourceLocation createModLocation(String path) {
-        return FactoryAPI.createLocation(MOD_ID, path);
+        return FactoryAPI.createLocation(ModConstants.MOD_ID, path);
     }
 
     public static void setup() {
@@ -218,35 +174,6 @@ public class Legacy4J {
         HashSet<CommonNetwork.Payload> payloads = new HashSet<>();
         payloads.add(new ClientAdvancementsPayload(List.copyOf(server.getAdvancements().getAllAdvancements())));
         return payloads;
-    }
-
-    public static void copySaveToDirectory(InputStream stream, File directory) {
-        if (directory.exists()) FileUtils.deleteQuietly(directory);
-        try (ZipInputStream inputStream = new ZipInputStream(stream)) {
-            ZipEntry zipEntry;
-            byte[] buffer = new byte[1024];
-            while ((zipEntry = inputStream.getNextEntry()) != null) {
-                File newFile = new File(directory, zipEntry.getName());
-                if (zipEntry.isDirectory()) {
-                    if (!newFile.isDirectory() && !newFile.mkdirs()) {
-                        throw new IOException("Failed to create directory " + newFile);
-                    }
-                } else {
-                    File parent = newFile.getParentFile();
-                    if (!parent.isDirectory() && !parent.mkdirs()) {
-                        throw new IOException("Failed to create directory " + parent);
-                    }
-                    FileOutputStream fos = new FileOutputStream(newFile);
-                    int len;
-                    while ((len = inputStream.read(buffer)) > 0) {
-                        fos.write(buffer, 0, len);
-                    }
-                    fos.close();
-                }
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
 }

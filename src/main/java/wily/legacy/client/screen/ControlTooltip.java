@@ -102,6 +102,7 @@ import java.util.*;
 import java.util.function.*;
 
 import static net.minecraft.world.level.block.JukeboxBlock.HAS_RECORD;
+import static wily.legacy.core.logger.L4JLog.LOGGER;
 
 public interface ControlTooltip {
     String CONTROL_TOOLTIPS = "control_tooltips";
@@ -1085,7 +1086,7 @@ public interface ControlTooltip {
                     else if (ioElement instanceof JsonObject o) controlTooltips.add(guiControlTooltipFromJson(o));
                     bufferedReader.close();
                 } catch (IOException exception) {
-                    Legacy4J.LOGGER.warn(exception.getMessage());
+                    LOGGER.warn(exception.getMessage());
                 }
             });
         }

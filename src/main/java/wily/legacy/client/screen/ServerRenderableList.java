@@ -54,6 +54,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import static wily.legacy.client.screen.CreationList.addIconButton;
+import static wily.legacy.core.logger.L4JLog.LOGGER;
 
 public class ServerRenderableList extends RenderableVList {
     protected static final Logger LOGGER = LogUtils.getLogger();
@@ -109,7 +110,7 @@ public class ServerRenderableList extends RenderableVList {
             this.lanServerDetector = new LanServerDetection.LanServerDetector(this.lanServerList);
             this.lanServerDetector.start();
         } catch (Exception exception) {
-            Legacy4J.LOGGER.warn("Unable to start LAN server detection: {}", exception.getMessage());
+            LOGGER.warn("Unable to start LAN server detection: {}", exception.getMessage());
         }
         super.init(name, leftPos, topPos, listWidth, listHeight);
     }

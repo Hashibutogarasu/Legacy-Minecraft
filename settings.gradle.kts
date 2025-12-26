@@ -23,3 +23,6 @@ stonecutter {
 }
 
 rootProject.name = "Legacy4J"
+
+include("legacy4j:core")
+include("auth")

@@ -34,7 +34,6 @@ import wily.factoryapi.base.Stocker;
 import wily.factoryapi.base.client.FactoryGuiGraphics;
 import wily.factoryapi.base.client.SimpleLayoutRenderable;
 import wily.factoryapi.base.network.CommonNetwork;
-import wily.factoryapi.util.FactoryScreenUtil;
 import wily.legacy.Legacy4J;
 import wily.legacy.Legacy4JClient;
 import wily.legacy.client.CommonColor;
@@ -53,6 +52,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
+import static wily.legacy.core.logger.L4JLog.LOGGER;
 
 public class LeaderboardsScreen extends PanelVListScreen {
     public static final List<StatsBoard> statsBoards = new ArrayList<>();
@@ -417,7 +417,7 @@ public class LeaderboardsScreen extends PanelVListScreen {
                             if (e instanceof JsonObject o) statsBoards.add(statsBoardFromJson(o));
                         });
                 } catch (IOException exception) {
-                    Legacy4J.LOGGER.warn(exception.getMessage());
+                    LOGGER.warn(exception.getMessage());
                 }
             })));
         }

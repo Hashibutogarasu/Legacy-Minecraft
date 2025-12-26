@@ -37,6 +37,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import static wily.legacy.core.logger.L4JLog.LOGGER;
 
 
 public class ControllerManager {
@@ -102,7 +103,7 @@ public class ControllerManager {
                 }
             }
         }, 0, 1)).exceptionally(t -> {
-            Legacy4J.LOGGER.warn(t.getMessage());
+            LOGGER.warn(t.getMessage());
             return null;
         });
     }

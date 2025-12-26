@@ -21,6 +21,7 @@ import wily.factoryapi.base.network.CommonNetwork;
 import wily.legacy.Legacy4J;
 import wily.legacy.Legacy4JClient;
 import wily.legacy.client.controller.*;
+import wily.legacy.core.utils.ModVersionUtils;
 import wily.legacy.network.PlayerInfoSync;
 import wily.legacy.util.IOUtil;
 import wily.legacy.util.LegacyComponents;
@@ -50,8 +51,8 @@ public class LegacyOptions {
                 register(FactoryConfig.create("component_" + keyMapping.getName(), null, Optional.ofNullable(((LegacyKeyMapping) keyMapping).getDefaultBinding()), Bearer.of(()->Optional.ofNullable(mapping.getBinding()),o->mapping.setBinding(o.filter(b -> b.isBindable).orElse(null))), ()->ControllerBinding.OPTIONAL_CODEC, m->{}, this));
             }
             super.load();
-            Legacy4JClient.isNewerVersion = Legacy4J.isNewerVersion(Legacy4J.VERSION.get(), lastLoadedVersion.get());
-            Legacy4JClient.isNewerMinecraftVersion = Legacy4J.isNewerVersion(SharedConstants.getCurrentVersion().name(), lastLoadedMinecraftVersion.get());
+            Legacy4JClient.isNewerVersion = ModVersionUtils.isNewerVersion(Legacy4J.VERSION.get(), lastLoadedVersion.get());
+            Legacy4JClient.isNewerMinecraftVersion = ModVersionUtils.isNewerVersion(SharedConstants.getCurrentVersion().name(), lastLoadedMinecraftVersion.get());
         }
     }.withFile("legacy/client_options.json");
 

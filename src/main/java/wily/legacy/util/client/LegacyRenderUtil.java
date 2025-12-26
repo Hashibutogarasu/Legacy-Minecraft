@@ -1,5 +1,6 @@
 package wily.legacy.util.client;
 
+import java.util.Objects;
 import com.google.common.collect.Ordering;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -74,7 +75,6 @@ import wily.legacy.util.LegacySprites;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -172,7 +172,7 @@ public class LegacyRenderUtil {
 
     public static void renderUsername(GuiGraphics graphics) {
         if (mc.level != null) return;
-        String username = MCAccount.isOfflineUser() ? I18n.get("legacy.menu.offline_user", mc.getUser().getName()) : mc.getUser().getName();
+        String username = LegacyMcAuth.isOfflineUser() ? I18n.get("legacy.menu.offline_user", mc.getUser().getName()) : mc.getUser().getName();
         graphics.drawString(mc.font, username, graphics.guiWidth() - 33 - mc.font.width(username), graphics.guiHeight() - 27, 0xFFFFFFFF);
     }
 

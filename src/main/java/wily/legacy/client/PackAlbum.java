@@ -62,6 +62,7 @@ import java.util.stream.Stream;
 
 import static wily.legacy.client.screen.ControlTooltip.*;
 import static wily.legacy.util.LegacySprites.PACK_HIGHLIGHTED;
+import static wily.legacy.core.logger.L4JLog.LOGGER;
 
 public record PackAlbum(String id, int version, Component displayName, Component description,
                         Optional<ResourceLocation> iconSprite, Optional<ResourceLocation> backgroundSprite,
@@ -127,7 +128,7 @@ public record PackAlbum(String id, int version, Component displayName, Component
                 }
             }
         } catch (IOException | RuntimeException e) {
-            Legacy4J.LOGGER.warn("Failed to load albums definition in {}", orderJson, e);
+            LOGGER.warn("Failed to load albums definition in {}", orderJson, e);
         }
         for (int i = defaultAlbums.size() - 1; i >= 0; i--) {
             PackAlbum a = defaultAlbums.get(i);
@@ -143,11 +144,11 @@ public record PackAlbum(String id, int version, Component displayName, Component
                 try (BufferedReader r = Files.newBufferedReader(p, Charsets.UTF_8)) {
                     CODEC.parse(JsonOps.INSTANCE, JsonParser.parseReader(r)).result().ifPresent(list::add);
                 } catch (IOException | RuntimeException e) {
-                    Legacy4J.LOGGER.warn("Failed to load {}, this album won't be loaded", p, e);
+                    LOGGER.warn("Failed to load {}, this album won't be loaded", p, e);
                 }
             }
         } catch (IOException | RuntimeException e) {
-            Legacy4J.LOGGER.warn("Failed to read albums in {}", path, e);
+            LOGGER.warn("Failed to read albums in {}", path, e);
         }
         if (deprecated) {
             FileUtils.deleteQuietly(path.toFile());
@@ -175,7 +176,7 @@ public record PackAlbum(String id, int version, Component displayName, Component
             try {
                 Files.createDirectory(path);
             } catch (IOException e) {
-                Legacy4J.LOGGER.warn("Failed to make albums directory {}", path, e);
+                LOGGER.warn("Failed to make albums directory {}", path, e);
             }
         } else FileUtils.listFiles(path.toFile(), new String[]{"json"}, true).forEach(File::delete);
 
@@ -188,7 +189,7 @@ public record PackAlbum(String id, int version, Component displayName, Component
                 w.setIndent("  ");
                 GsonHelper.writeValue(w, CODEC.encodeStart(JsonOps.INSTANCE, album).result().orElseThrow(), null);
             } catch (IOException e) {
-                Legacy4J.LOGGER.warn("Failed to write {}, this album won't be saved", p, e);
+                LOGGER.warn("Failed to write {}, this album won't be saved", p, e);
             }
         }
         Path orderJson = path.resolveSibling(path.getFileName() + ".json");
@@ -202,7 +203,7 @@ public record PackAlbum(String id, int version, Component displayName, Component
             obj.add("order", a);
             GsonHelper.writeValue(w, obj, null);
         } catch (IOException e) {
-            Legacy4J.LOGGER.warn("Failed to write {}, the albums definition won't be saved", orderJson, e);
+            LOGGER.warn("Failed to write {}, the albums definition won't be saved", orderJson, e);
         }
     }
 
@@ -399,7 +400,7 @@ public record PackAlbum(String id, int version, Component displayName, Component
                 }
                 return resourceLocation;
             } catch (Exception exception) {
-                Legacy4J.LOGGER.warn("Failed to load icon from pack {}", pack.getId(), exception);
+                LOGGER.warn("Failed to load icon from pack {}", pack.getId(), exception);
                 return fallback;
             }
         }

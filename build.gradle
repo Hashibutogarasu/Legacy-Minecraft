@@ -1,3 +1,8 @@
+buildscript {
+    dependencies {
+        classpath 'org.codehaus.groovy:groovy-json:3.0.9'
+    }
+}
 import java.text.SimpleDateFormat
 import groovy.json.JsonSlurper
 import groovy.json.JsonParserType
@@ -12,6 +17,9 @@ base.archivesName = project.archives_base_name
 version = stonecutter.current.version + "-" + mod_version
 group = rootProject.maven_group
 def loader = property("loom.platform")
+
+// Share Minecraft version with subprojects
+rootProject.ext.mc_version = stonecutter.current.version
 
 repositories {
     mavenCentral()
@@ -65,13 +73,27 @@ repositories {
     }
 }
 
-configurations.configureEach {
-    resolutionStrategy {
-        force("net.fabricmc:fabric-loader:${fabric_loader_version}")
+// Loader-specific helper closures to simplify dependency declarations.
+allprojects {
+    configurations.configureEach {
+        if (project.findProperty("loom.platform")?.toString() == "fabric") {
+            resolutionStrategy {
+                force("net.fabricmc:fabric-loader:${fabric_loader_version}")
+            }
+        }
     }
 }
 
 dependencies {
+    implementation localGroovy()
+    // Core library module - include in final JAR
+    implementation project(':legacy4j:core')
+    include project(':legacy4j:core')
+
+    // Auth library module - include in final JAR
+    implementation project(':auth')
+    include project(':auth')
+
     minecraft "com.mojang:minecraft:${stonecutter.current.version}"
     mappings loom.officialMojangMappings()
     api(include(sdl_dependency))
@@ -83,11 +105,17 @@ dependencies {
         modCompileOnly("mezz.jei:jei-${stonecutter.current.version}-${loader}:${jei_version}")
     }
 
-    if (loader == "fabric" || stonecutter.eval(stonecutter.current.version, ">=1.21") && loader == "neoforge"){
+    // sodium/iris: available on fabric; for NeoForge only on recent MC versions
+    if (loader == "fabric") {
+        modCompileOnly("maven.modrinth:sodium:${sodium_version}")
+        modCompileOnly("maven.modrinth:iris:${iris_version}")
+    }
+    if (stonecutter.eval(stonecutter.current.version, ">=1.21") && loader == "neoforge") {
         modCompileOnly("maven.modrinth:sodium:${sodium_version}")
         modCompileOnly("maven.modrinth:iris:${iris_version}")
     }
 
+    // Fabric-only implementations & APIs (only add on fabric)
     if (loader == "fabric") {
         modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
         modApi "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
@@ -96,19 +124,23 @@ dependencies {
             modCompileOnly("maven.modrinth:nostalgic-tweaks:${nt_version}")
             modCompileOnly("dev.architectury:architectury-fabric:${architectury_version}")
         }
-
-    } else if (loader == "forge") {
-        forge "net.minecraftforge:forge:${stonecutter.current.version}-${forge_version}"
-        if (stonecutter.eval(stonecutter.current.version, "1.20.1")){
-            modCompileOnly("maven.modrinth:nostalgic-tweaks:${nt_version}")
-            modCompileOnly("dev.architectury:architectury-forge:${architectury_version}")
-        }
-        compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixin_extras_version}"))
-    } else if (loader == "neoforge") {
-        neoForge "net.neoforged:neoforge:${neoforge_version}"
     }
 
-    if (loader == "neoforge" && stonecutter.eval(stonecutter.current.version, ">=1.21")) {
+    // Forge-specific setup
+    if (loader == "forge") {
+        forge "net.minecraftforge:forge:${stonecutter.current.version}-${forge_version}"
+        compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixin_extras_version}"))
+    }
+    if (stonecutter.eval(stonecutter.current.version, "1.20.1") && loader == "forge"){
+        modCompileOnly("maven.modrinth:nostalgic-tweaks:${nt_version}")
+        modCompileOnly("dev.architectury:architectury-forge:${architectury_version}")
+    }
+
+    // NeoForge-specific setup
+    if (loader == "neoforge") {
+        neoForge "net.neoforged:neoforge:${neoforge_version}"
+    }
+    if (stonecutter.eval(stonecutter.current.version, ">=1.21") && loader == "neoforge") {
         modCompileOnly("maven.modrinth:nostalgic-tweaks:${nt_version}")
         modCompileOnly("dev.architectury:architectury-neoforge:${architectury_version}")
     }
@@ -116,9 +148,8 @@ dependencies {
     if (loader == "forge" || loader == "neoforge") {
         forgeRuntimeLibrary sdl_dependency
     }
-
-
 }
+
 
 def aw = "${mod_id}.accesswidener"
 
@@ -303,7 +334,7 @@ publishing {
                 pom.withXml {
                     asNode().dependencies.dependency.each { dep ->
                         // use this approach to make excluding dependencies from Curse Maven more convenient
-                        if (["curse.maven:","dev.architectury:"].stream().anyMatch(mod -> "${dep.groupId.last().value().last()}:${dep.artifactId.last().value().last()}".startsWith(mod))) {
+                        if (["curse.maven:","dev.architectury:"].stream().any { mod -> "${dep.groupId.last().value().last()}:${dep.artifactId.last().value().last()}".startsWith(mod) }) {
                             assert dep.parent().remove(dep)
                         }
                     }

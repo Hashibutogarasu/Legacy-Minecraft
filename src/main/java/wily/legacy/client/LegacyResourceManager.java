@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
+import static wily.legacy.core.logger.L4JLog.LOGGER;
 
 public class LegacyResourceManager implements ResourceManagerReloadListener {
     public static final ResourceLocation GAMEPAD_MAPPINGS = Legacy4J.createModLocation("gamepad_mappings.txt");
@@ -55,20 +56,20 @@ public class LegacyResourceManager implements ResourceManagerReloadListener {
                     keyboardButtonBuilders.add(new KeyboardScreen.CharButtonBuilder(25, p.getAsString(), null, null, null, null));
             });
         } catch (IOException e) {
-            Legacy4J.LOGGER.warn(e.getMessage());
+            LOGGER.warn(e.getMessage());
         }
     }
 
     public static <T extends ControlTooltip.CharsIcon> void addIcons(ResourceManager resourceManager, ResourceLocation location, Codec<List<T>> codec, BiConsumer<String, ControlTooltip.LegacyIcon> addIcon) {
         resourceManager.getResource(location).ifPresent(r -> {
             try (BufferedReader reader = r.openAsReader()) {
-                codec.parse(JsonOps.INSTANCE, JsonParser.parseReader(reader)).resultOrPartial(error -> Legacy4J.LOGGER.warn("Failed to parse {}: {}", location, error)).ifPresent(charsIcons -> {
+                codec.parse(JsonOps.INSTANCE, JsonParser.parseReader(reader)).resultOrPartial(error -> LOGGER.warn("Failed to parse {}: {}", location, error)).ifPresent(charsIcons -> {
                     for (ControlTooltip.CharsIcon charsIcon : charsIcons) {
                         addIcon.accept(charsIcon.name(), charsIcon);
                     }
                 });
             } catch (IOException e) {
-                Legacy4J.LOGGER.warn(e.getMessage());
+                LOGGER.warn(e.getMessage());
             }
         });
     }
@@ -85,7 +86,7 @@ public class LegacyResourceManager implements ResourceManagerReloadListener {
         try {
             LegacyIntro.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseReader(resourceManager.openAsReader(INTRO_LOCATION))).result().ifPresent(i -> intro = i);
         } catch (IOException e) {
-            Legacy4J.LOGGER.error(e.getMessage());
+            LOGGER.error(e.getMessage());
         }
     }
 
@@ -137,7 +138,7 @@ public class LegacyResourceManager implements ResourceManagerReloadListener {
                             CommonColor.COMMON_COLORS.get(id).parse(new Dynamic<>(JsonOps.INSTANCE, e));
                     });
                 } catch (IOException e) {
-                    Legacy4J.LOGGER.warn(e.getMessage());
+                    LOGGER.warn(e.getMessage());
                 }
             });
             resourceManager.getResource(FactoryAPI.createLocation(name, COMMON_VALUES)).ifPresent(r -> {
@@ -149,7 +150,7 @@ public class LegacyResourceManager implements ResourceManagerReloadListener {
                             CommonColor.COMMON_VALUES.get(id).parse(new Dynamic<>(JsonOps.INSTANCE, e));
                     });
                 } catch (IOException e) {
-                    Legacy4J.LOGGER.warn(e.getMessage());
+                    LOGGER.warn(e.getMessage());
                 }
             });
             addKbmIcons(resourceManager, FactoryAPI.createLocation(name, DEFAULT_KBM_ICONS), (s, b) -> {

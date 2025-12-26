@@ -1,6 +1,5 @@
 package wily.legacy.mixin.base.client;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -24,15 +23,14 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import wily.legacy.Legacy4J;
 import wily.legacy.client.LegacyGuiEntityRenderer;
 import wily.legacy.client.LegacyGuiItemRenderState;
 import wily.legacy.client.LegacyGuiItemRenderer;
 import wily.legacy.client.LegacyOptions;
 
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
+import static wily.legacy.core.logger.L4JLog.LOGGER;
 
 @Mixin(GuiRenderer.class)
 public class GuiRendererMixin {
@@ -84,7 +82,7 @@ public class GuiRendererMixin {
     @Inject(method = "prepareItemElements", at = @At("HEAD"))
     private void prepareItemElementsHead(CallbackInfo ci) {
         if (guiItemRenderers == null) {
-            Legacy4J.LOGGER.error("that can't be!");
+            LOGGER.error("that can't be!");
             guiItemRenderers = new Long2ObjectArrayMap<>();
         }
         guiItemRenderers.forEach((i, renderer) -> renderer.markInvalid());

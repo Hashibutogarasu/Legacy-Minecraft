@@ -18,7 +18,6 @@ import org.apache.commons.io.FileUtils;
 import wily.factoryapi.FactoryAPIClient;
 import wily.factoryapi.base.Stocker;
 import wily.factoryapi.base.client.MinecraftAccessor;
-import wily.legacy.Legacy4J;
 import wily.legacy.client.ControlType;
 import wily.legacy.client.LegacyOptions;
 import wily.legacy.client.screen.ConfirmationScreen;
@@ -34,6 +33,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+
+import static wily.legacy.core.logger.L4JLog.LOGGER;
 
 
 public class SDLControllerHandler implements Controller.Handler {
@@ -58,7 +59,7 @@ public class SDLControllerHandler implements Controller.Handler {
         boolean pojav = false;
 
         if (System.getenv("POJAV_NATIVEDIR") != null) {
-            Legacy4J.LOGGER.warn("Pojav-based Launcher Detected.");
+            LOGGER.warn("Pojav-based Launcher Detected.");
             pojav = true;
         }
 
@@ -69,7 +70,7 @@ public class SDLControllerHandler implements Controller.Handler {
         try {
             Class.forName("com.sun.jna.Native");
         } catch (ClassNotFoundException e) {
-            Legacy4J.LOGGER.warn("JNA wasn't found.");
+            LOGGER.warn("JNA wasn't found.");
             return null;
         }
         String arch = System.getProperty("os.arch");
@@ -91,7 +92,7 @@ public class SDLControllerHandler implements Controller.Handler {
     }
 
     public void fallback() {
-        Legacy4J.LOGGER.warn("{} isn't supported in this system. {} will be used instead.", getName(), GLFWControllerHandler.getInstance().getName());
+        LOGGER.warn("{} isn't supported in this system. {} will be used instead.", getName(), GLFWControllerHandler.getInstance().getName());
         LegacyOptions.selectedControllerHandler.set(GLFWControllerHandler.getInstance());
         LegacyOptions.selectedControllerHandler.save();
         init = true;
@@ -117,14 +118,14 @@ public class SDLControllerHandler implements Controller.Handler {
                 } else try {
                     SdlNativeLibraryLoader.loadLibSDL3FromFilePathNow(natives.file().getPath());
                 } catch (Exception | UnsatisfiedLinkError e) {
-                    Legacy4J.LOGGER.warn("Failed to load {} natives: {}", getName(), e.getMessage());
+                    LOGGER.warn("Failed to load {} natives: {}", getName(), e.getMessage());
                     init = true;
                     return;
                 }
             }
 
             if (!SdlInit.SDL_Init(SdlSubSystemConst.SDL_INIT_JOYSTICK | SdlSubSystemConst.SDL_INIT_GAMEPAD)) {
-                Legacy4J.LOGGER.warn("SDL Game Controller failed to start!");
+                LOGGER.warn("SDL Game Controller failed to start!");
                 fallback();
                 return;
             }
@@ -342,7 +343,7 @@ public class SDLControllerHandler implements Controller.Handler {
     public void applyGamePadMappingsFromBuffer(BufferedReader reader) {
         String s = reader.lines().collect(Collectors.joining());
         int i = SdlGamepad.SDL_AddGamepadMapping(s);
-        Legacy4J.LOGGER.warn("Added SDL Controller Mappings: {} Code", i);
+        LOGGER.warn("Added SDL Controller Mappings: {} Code", i);
     }
 
 

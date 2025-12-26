@@ -36,9 +36,9 @@ import wily.factoryapi.base.network.CommonNetwork;
 import wily.factoryapi.base.network.CommonRecipeManager;
 import wily.factoryapi.util.ModInfo;
 import wily.factoryapi.util.PagedList;
-import wily.legacy.Legacy4J;
 import wily.legacy.Legacy4JClient;
 import wily.legacy.client.*;
+import wily.legacy.core.ModConstants;
 import wily.legacy.init.LegacyRegistries;
 import wily.legacy.inventory.ImpossibleIngredient;
 import wily.legacy.inventory.LegacySlotDisplay;
@@ -138,7 +138,7 @@ public class LegacyCraftingScreen extends RecipesScreen<LegacyCraftingMenu, Reci
         if (LegacyOptions.modCraftingTabs.get()) {
             allRecipes.stream().collect(Collectors.groupingBy(h -> h.getId().getNamespace(), () -> new TreeMap<>(Comparator.<String>naturalOrder()), recipesByGroupsCollector)).forEach((namespace, m) -> {
                 ModInfo modInfo = FactoryAPIPlatform.getModInfo(namespace);
-                if (modInfo == null || namespace.equals("minecraft") || namespace.equals(Legacy4J.MOD_ID) || m.isEmpty()) return;
+                if (modInfo == null || namespace.equals("minecraft") || namespace.equals(ModConstants.MOD_ID) || m.isEmpty()) return;
                 List<List<RecipeInfo<CraftingRecipe>>> groups = new ArrayList<>();
                 m.values().forEach(l -> {
                     l.removeIf(i -> i.isInvalid() || i.getOptionalIngredients().size() > ingredientsGrid.size());

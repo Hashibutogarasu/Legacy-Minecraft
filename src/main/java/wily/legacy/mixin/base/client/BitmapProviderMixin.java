@@ -18,6 +18,7 @@ import wily.legacy.client.LegacyGlyphInfo;
 
 import java.io.IOException;
 import java.io.InputStream;
+import static wily.legacy.core.logger.L4JLog.LOGGER;
 
 @Mixin(BitmapProvider.Definition.class)
 public abstract class BitmapProviderMixin {
@@ -74,7 +75,7 @@ public abstract class BitmapProviderMixin {
                             }
                         });
                         if (glyph != null) {
-                            Legacy4J.LOGGER.warn("Codepoint '{}' declared multiple times in {}", Integer.toHexString(o), resourceLocation);
+                            LOGGER.warn("Codepoint '{}' declared multiple times in {}", Integer.toHexString(o), resourceLocation);
                         }
                     }
                 }

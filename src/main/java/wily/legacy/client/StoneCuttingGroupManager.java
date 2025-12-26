@@ -12,6 +12,7 @@ import wily.legacy.util.IOUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.*;
+import static wily.legacy.core.logger.L4JLog.LOGGER;
 
 public class StoneCuttingGroupManager implements ResourceManagerReloadListener {
     public static final Map<String, List<RecipeInfo.Filter>> listing = new LinkedHashMap<>();
@@ -25,7 +26,7 @@ public class StoneCuttingGroupManager implements ResourceManagerReloadListener {
                 JsonElement element = JsonParser.parseReader(bufferedReader);
                 RecipeInfo.Filter.LISTING_CODEC.parse(JsonOps.INSTANCE, element).result().ifPresent(listing::putAll);
             } catch (IOException exception) {
-                Legacy4J.LOGGER.warn(exception.getMessage());
+                LOGGER.warn(exception.getMessage());
             }
         }));
     }

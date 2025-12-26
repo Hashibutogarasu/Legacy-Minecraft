@@ -26,6 +26,8 @@ import java.util.function.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static wily.legacy.core.logger.L4JLog.LOGGER;
+
 public class IOUtil {
 
     //TODO: Replace this with a Codec, like RecipeInfo.Filter
@@ -91,13 +93,13 @@ public class IOUtil {
             @Override
             public <T> DataResult<Pair<Map<K, V>, T>> decode(DynamicOps<T> ops, T input) {
                 Dynamic<T> dynamic = new Dynamic<>(ops, input);
-                DataResult<Map<K, V>> defaultMap = dynamic.asMapOpt().map(s -> s.collect(Collectors.toMap(p -> keyCodec.parse(p.getFirst()).result().orElseThrow(), p -> codec.parse(p.getSecond().set(keyField, p.getFirst())).resultOrPartial(Legacy4J.LOGGER::error).get(), (a, b) -> b, LinkedHashMap::new)));
+                DataResult<Map<K, V>> defaultMap = dynamic.asMapOpt().map(s -> s.collect(Collectors.toMap(p -> keyCodec.parse(p.getFirst()).result().orElseThrow(), p -> codec.parse(p.getSecond().set(keyField, p.getFirst())).resultOrPartial(LOGGER::error).get(), (a, b) -> b, LinkedHashMap::new)));
                 return defaultMap.map(m -> Pair.of(m, input));
             }
 
             @Override
             public <T> DataResult<T> encode(Map<K, V> input, DynamicOps<T> ops, T prefix) {
-                return DataResult.success(ops.createMap(input.entrySet().stream().map(e -> Pair.of(keyCodec.encodeStart(ops, e.getKey()).getOrThrow(), codec.encodeStart(ops, e.getValue()).resultOrPartial(Legacy4J.LOGGER::error).get()))));
+                return DataResult.success(ops.createMap(input.entrySet().stream().map(e -> Pair.of(keyCodec.encodeStart(ops, e.getKey()).getOrThrow(), codec.encodeStart(ops, e.getValue()).resultOrPartial(LOGGER::error).get()))));
             }
         };
     }
@@ -108,7 +110,7 @@ public class IOUtil {
             @Override
             public <T> DataResult<Pair<List<V>, T>> decode(DynamicOps<T> ops, T input) {
                 Dynamic<T> dynamic = new Dynamic<>(ops, input);
-                DataResult<List<V>> defaultMap = dynamic.asMapOpt().map(s -> s.map(p -> codec.parse(p.getSecond().set(keyField, p.getFirst())).resultOrPartial(Legacy4J.LOGGER::error).get()).toList());
+                DataResult<List<V>> defaultMap = dynamic.asMapOpt().map(s -> s.map(p -> codec.parse(p.getSecond().set(keyField, p.getFirst())).resultOrPartial(LOGGER::error).get()).toList());
                 return defaultMap.map(m -> Pair.of(m, input));
             }
 
@@ -126,14 +128,14 @@ public class IOUtil {
                 Dynamic<T> dynamic = new Dynamic<>(ops, input);
                 DataResult<Map<String, E>> defaultMap = dynamic.asMapOpt().map(s -> s.collect(Collectors.toMap(p -> p.getFirst().asString().result().orElseThrow(), p -> codec.parse(p.getSecond()).result().orElseThrow(), (a, b) -> b, LinkedHashMap::new)));
                 return (defaultMap.result().isPresent() ? defaultMap : dynamic.asListOpt(d -> {
-                    E element = codec.parse(d).result().orElseGet(() -> d.get(valueField).flatMap(codec::parse).resultOrPartial(Legacy4J.LOGGER::error).get());
+                    E element = codec.parse(d).result().orElseGet(() -> d.get(valueField).flatMap(codec::parse).resultOrPartial(LOGGER::error).get());
                     return Pair.of(d.get(keyField).asString().result().orElseGet(() -> fallBackKey.apply(element)), element);
                 }).map(l -> l.stream().collect(Collectors.toMap(Pair::getFirst, Pair::getSecond, (a, b) -> b, LinkedHashMap::new)))).map(m -> Pair.of(m, input));
             }
 
             @Override
             public <T> DataResult<T> encode(Map<String, E> input, DynamicOps<T> ops, T prefix) {
-                return DataResult.success(ops.createList(input.entrySet().stream().map(e -> ops.createMap(Map.of(ops.createString(keyField), ops.createString(e.getKey()), ops.createString(valueField), codec.encodeStart(ops, e.getValue()).resultOrPartial(Legacy4J.LOGGER::error).get())))));
+                return DataResult.success(ops.createList(input.entrySet().stream().map(e -> ops.createMap(Map.of(ops.createString(keyField), ops.createString(e.getKey()), ops.createString(valueField), codec.encodeStart(ops, e.getValue()).resultOrPartial(LOGGER::error).get())))));
             }
         };
     }

@@ -18,6 +18,7 @@ import wily.legacy.client.LegacySaveCache;
 import wily.legacy.util.LegacyComponents;
 
 import java.io.IOException;
+import static wily.legacy.core.logger.L4JLog.LOGGER;
 
 public class SaveOptionsScreen extends ConfirmationScreen {
     protected final PlayGameScreen parent;
@@ -47,7 +48,7 @@ public class SaveOptionsScreen extends ConfirmationScreen {
                 SystemToast.onWorldAccessFailure(minecraft, id);
                 parent.saveRenderableList.reloadSaveList();
             } catch (ContentValidationException contentValidationException) {
-                Legacy4J.LOGGER.warn("{}", contentValidationException.getMessage());
+                LOGGER.warn("{}", contentValidationException.getMessage());
                 minecraft.setScreen(/*? if >1.20.2 {*/NoticeWithLinkScreen.createWorldSymlinkWarningScreen(() -> minecraft.setScreen(parent))/*?} else {*//*new SymlinkWarningScreen(parent)*//*?}*/);
             }
         }) {

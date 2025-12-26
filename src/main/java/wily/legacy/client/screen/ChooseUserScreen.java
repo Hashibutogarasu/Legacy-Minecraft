@@ -205,13 +205,16 @@ public class ChooseUserScreen extends PanelVListScreen {
         var authService = LegacyAuthService.getInstance();
         
         CreationList.addIconButton(renderableVList, Legacy4J.createModLocation("icon/add_user"), ADD_ACCOUNT, b -> minecraft.setScreen(accountScreen(ADD_ACCOUNT, this, true, a -> {
-            authService.getAccounts().add(a);
-            authService.saveAccounts();
+            if (a != null) {
+                authService.getAccounts().add(a);
+                authService.saveAccounts();
+            }
             reloadAccountButtons();
             minecraft.setScreen(ChooseUserScreen.this);
         })));
         
         for (LegacyMcAccount account : authService.getAccounts()) {
+            if (account == null) continue;
             String displayName = account.getName();
             Component label = account.isOffline() 
                 ? Component.translatable("legacy.menu.offline_user", displayName) 

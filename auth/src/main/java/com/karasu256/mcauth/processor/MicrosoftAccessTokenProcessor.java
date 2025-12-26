@@ -9,6 +9,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -61,6 +62,7 @@ public class MicrosoftAccessTokenProcessor implements IAccessTokenProcessor {
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(TOKEN_URL))
             .header("Content-Type", "application/x-www-form-urlencoded")
+            .timeout(Duration.ofSeconds(30))
             .POST(HttpRequest.BodyPublishers.ofString(form))
             .build();
         

@@ -9,6 +9,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -44,6 +45,7 @@ public class MinecraftAccessTokenProcessor implements IAccessTokenProcessor {
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(MC_AUTH_URL))
             .header("Content-Type", "application/json")
+            .timeout(java.time.Duration.ofSeconds(30))
             .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(authRequest)))
             .build();
         
@@ -70,6 +72,7 @@ public class MinecraftAccessTokenProcessor implements IAccessTokenProcessor {
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(MC_PROFILE_URL))
             .header("Authorization", "Bearer " + context.getMcAccessToken())
+            .timeout(Duration.ofSeconds(30))
             .GET()
             .build();
         

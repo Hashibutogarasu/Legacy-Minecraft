@@ -115,6 +115,7 @@ public class LegacyLoadingScreen extends Screen implements LegacyLoading, Contro
             public void onClose() {
                 onClose.run();
                 closeExecutor(executor);
+                super.onClose();
             }
 
             @Override

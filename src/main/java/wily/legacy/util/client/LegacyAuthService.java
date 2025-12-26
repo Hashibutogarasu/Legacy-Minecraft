@@ -31,6 +31,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -56,6 +57,8 @@ public class LegacyAuthService {
     private final List<LegacyMcAccount> accounts = new ArrayList<>();
     private final Path accountsPath;
     private final Gson gson = new Gson();
+    
+    private final AtomicReference<WebServer> activeServer = new AtomicReference<>();
     
     private LegacyAuthService() {
         mcAuth = new LegacyMcAuth();
@@ -108,6 +111,7 @@ public class LegacyAuthService {
         try {
             JsonArray jsonArray = new JsonArray();
             for (LegacyMcAccount account : accounts) {
+                if (account == null) continue;
                 JsonObject obj = new JsonObject();
                 obj.addProperty("id", account.getUuid().toString());
                 obj.addProperty("name", account.getName());
@@ -129,6 +133,9 @@ public class LegacyAuthService {
     /**
      * Starts Microsoft authentication with progress screen.
      */
+    /**
+     * Starts Microsoft authentication with progress screen.
+     */
     public CompletableFuture<LegacyMcAccount> startAuthentication(Runnable onClose, String password) {
         Minecraft minecraft = Minecraft.getInstance();
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -136,18 +143,28 @@ public class LegacyAuthService {
         // Prepare McAuth for new authentication session
         mcAuth.prepareAuthentication();
         
-        // Create and show loading screen
-        LegacyLoadingScreen screen = LegacyLoadingScreen.createWithExecutor(LOGIN_IN, onClose, executor);
+        // Cancellation flag
+        AtomicBoolean cancelled = new AtomicBoolean(false);
+        
+        // Create and show loading screen - cancel auth on close
+        LegacyLoadingScreen screen = LegacyLoadingScreen.createWithExecutor(LOGIN_IN, () -> {
+            cancelled.set(true);
+            mcAuth.cancelCurrentAuthentication();
+            onClose.run();
+        }, executor);
         minecraft.execute(() -> minecraft.setScreen(screen));
         
         // Update initial stage
         screen.setLoadingStage(ACQUIRING_MSAUTH_TOKEN);
         screen.setProgress(0f);
         
-        AtomicReference<WebServer> serverRef = new AtomicReference<>();
-        AtomicReference<String> refreshTokenRef = new AtomicReference<>();
-        
         return CompletableFuture.supplyAsync(() -> {
+            // Stop any existing server
+            WebServer existing = activeServer.getAndSet(null);
+            if (existing != null) {
+                existing.stop();
+            }
+            
             // Create web server to receive OAuth callback
             WebServer server = new WebServer(CALLBACK_PORT) {
                 @Override
@@ -158,7 +175,7 @@ public class LegacyAuthService {
                         : "Login failed. Please try again.";
                 }
             };
-            serverRef.set(server);
+            activeServer.set(server);
             
             try {
                 server.start();
@@ -178,6 +195,7 @@ public class LegacyAuthService {
                 progress -> {
                     // Update loading screen with progress
                     minecraft.execute(() -> {
+                        if (cancelled.get()) return;
                         screen.setLoadingStage(getStageComponent(progress.processorName()));
                         screen.setProgress(progress.getPercentage());
                     });
@@ -185,11 +203,16 @@ public class LegacyAuthService {
             );
         }).thenApply(result -> {
             // Stop web server and complete authentication
-            WebServer server = serverRef.get();
+            WebServer server = activeServer.getAndSet(null);
             if (server != null) {
                 server.stop();
             }
             mcAuth.completeAuthentication();
+            
+            // Check if cancelled
+            if (cancelled.get()) {
+                return null;
+            }
             
             if (!result.ok()) {
                 throw new RuntimeException("Authentication failed");
@@ -197,6 +220,7 @@ public class LegacyAuthService {
             
             // Update to finalizing stage
             minecraft.execute(() -> {
+                if (cancelled.get()) return;
                 screen.setLoadingStage(FINALIZING);
                 screen.setProgress(1.0f);
             });
@@ -218,30 +242,38 @@ public class LegacyAuthService {
                 storedRefresh = encrypter.encrypt(refreshToken);
             }
             
-            return new LegacyMcAccount(
+            LegacyMcAccount account = new LegacyMcAccount(
                 uuid != null ? UUID.fromString(uuid) : UUID.randomUUID(),
                 username,
                 storedAccess,
                 storedRefresh,
                 isEncrypted
             );
+            
+            // Check if cancelled before closing screen
+            if (!cancelled.get()) {
+                minecraft.execute(() -> screen.onClose());
+            }
+            
+            return account;
         }).exceptionally(e -> {
             // Stop server and complete authentication on error
-            WebServer server = serverRef.get();
+            WebServer server = activeServer.getAndSet(null);
             if (server != null) {
                 server.stop();
             }
             mcAuth.completeAuthentication();
             
-            // Show error toast
-            minecraft.execute(() -> {
-                FactoryAPIClient.getToasts().addToast(new LegacyTip(
-                    Component.translatable("legacy.menu.choose_user.failed", 
-                        Component.translatable("legacy.menu.choose_user.failed.unauthorized").withStyle(ChatFormatting.RED)
-                    ), 140, 46
-                ).centered());
-                screen.onClose();
-            });
+            // Only show error if not cancelled
+            if (!cancelled.get()) {
+                minecraft.execute(() -> {
+                    FactoryAPIClient.getToasts().addToast(new LegacyTip(
+                        Component.translatable("legacy.menu.choose_user.failed", 
+                            Component.translatable("legacy.menu.choose_user.failed.unauthorized").withStyle(ChatFormatting.RED)
+                        ), 140, 46
+                    ).centered());
+                });
+            }
             
             return null;
         });
@@ -254,9 +286,13 @@ public class LegacyAuthService {
         Minecraft minecraft = Minecraft.getInstance();
         ExecutorService executor = Executors.newSingleThreadExecutor();
         
-        // Create and show loading screen
+        // Cancellation flag
+        AtomicBoolean cancelled = new AtomicBoolean(false);
+        
+        // Create and show loading screen - cancel auth on close
         LegacyLoadingScreen screen = LegacyLoadingScreen.createWithExecutor(LOGIN_IN, () -> {
-            LegacyLoadingScreen.closeExecutor(executor);
+            cancelled.set(true);
+            mcAuth.cancelCurrentAuthentication();
         }, executor);
         minecraft.execute(() -> minecraft.setScreen(screen));
         
@@ -265,7 +301,9 @@ public class LegacyAuthService {
         if (refreshToken == null) {
             // No refresh token - use existing access token
             minecraft.execute(() -> {
+                if (cancelled.get()) return;
                 setUser(account.toUser());
+                screen.onClose();
                 onSuccess.run();
             });
             return;
@@ -298,10 +336,16 @@ public class LegacyAuthService {
         
         mcAuth.refreshAuthentication(finalToken, progress -> {
             minecraft.execute(() -> {
+                if (cancelled.get()) return;
                 screen.setLoadingStage(getStageComponent(progress.processorName()));
                 screen.setProgress(progress.getPercentage());
             });
-        }).thenAccept(result -> {
+        }).thenApply(result -> {
+            // Check if cancelled
+            if (cancelled.get()) {
+                return null;
+            }
+            
             if (!result.ok()) {
                 throw new RuntimeException("Refresh failed");
             }
@@ -322,6 +366,8 @@ public class LegacyAuthService {
             }
             
             // Create updated account
+            final String finalUuid = uuid;
+            final String finalAccessToken = accessToken;
             LegacyMcAccount updatedAccount = new LegacyMcAccount(
                 uuid != null ? UUID.fromString(uuid) : account.getUuid(),
                 result.username(),
@@ -331,6 +377,9 @@ public class LegacyAuthService {
             );
             
             minecraft.execute(() -> {
+                // Check if cancelled again before setting user
+                if (cancelled.get()) return;
+                
                 // Update in list
                 int idx = accounts.indexOf(account);
                 if (idx >= 0) {
@@ -341,22 +390,26 @@ public class LegacyAuthService {
                 // Set user with unencrypted token
                 User user = new User(
                     result.username(),
-                    uuid != null ? UUID.fromString(uuid) : account.getUuid(),
-                    accessToken,
+                    finalUuid != null ? UUID.fromString(finalUuid) : account.getUuid(),
+                    finalAccessToken,
                     Optional.empty(),
                     Optional.empty()
                 );
                 setUser(user);
+                
+                screen.onClose();
                 onSuccess.run();
             });
+            
+            return result;
         }).exceptionally(e -> {
+            if (cancelled.get()) return null;
             minecraft.execute(() -> {
                 FactoryAPIClient.getToasts().addToast(new LegacyTip(
                     Component.translatable("legacy.menu.choose_user.failed", 
                         Component.translatable("legacy.menu.choose_user.failed.unauthorized").withStyle(ChatFormatting.RED)
                     ), 140, 46
                 ).centered());
-                screen.onClose();
             });
             return null;
         });

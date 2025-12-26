@@ -41,6 +41,7 @@ public class XboxXstsTokenProcessor implements IAccessTokenProcessor {
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(XBOX_XSTS_URL))
             .header("Content-Type", "application/json")
+            .timeout(java.time.Duration.ofSeconds(30))
             .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(xstsRequest)))
             .build();
         

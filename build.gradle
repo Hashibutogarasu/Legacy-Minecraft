@@ -11,6 +11,12 @@ plugins {
     id "dev.architectury.loom"
     id "me.modmuss50.mod-publish-plugin" version "0.7.4"
     id 'maven-publish'
+    id "com.github.johnrengelman.shadow" version "8.1.1"
+}
+
+configurations {
+    shade
+    implementation.extendsFrom shade
 }
 
 base.archivesName = project.archives_base_name
@@ -89,10 +95,10 @@ dependencies {
     // Core library module - include in final JAR
     implementation project(':legacy4j:core')
     include project(':legacy4j:core')
+    shade project(':legacy4j:core')
 
     // Auth library module - include in final JAR
-    implementation project(':auth')
-    include project(':auth')
+    shade project(':auth')
 
     minecraft "com.mojang:minecraft:${stonecutter.current.version}"
     mappings loom.officialMojangMappings()
@@ -188,7 +194,19 @@ java {
     sourceCompatibility = isJava21 ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
     targetCompatibility = isJava21 ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
 }
+
+shadowJar {
+    configurations = [project.configurations.shade]
+    archiveClassifier.set("dev-shadow")
+    dependencies {
+        exclude(dependency('com.google.code.gson:gson'))
+        exclude(dependency('com.google.errorprone:error_prone_annotations'))
+    }
+}
+
 remapJar {
+    inputFile.set(shadowJar.archiveFile)
+    dependsOn(shadowJar)
     if (loader == "neoforge") atAccessWideners.add aw
 }
 ext {
